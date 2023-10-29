@@ -10,7 +10,7 @@ COMMANDS = {
     "all": contact_handlers.get_all_contacts,
     "add-birthday": contact_handlers.add_birthday,
     "show-birthday": contact_handlers.show_birthday,
-    "birthdays": contact_handlers.get_birthdays_per_week,
+    "birthdays": contact_handlers.show_birthdays_per_week,
 }
 
 COMMANDS_INFO = {

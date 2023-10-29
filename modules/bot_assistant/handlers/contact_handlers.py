@@ -1,6 +1,6 @@
 from modules.bot_assistant.decorators.decorators import input_error
 from modules.bot_assistant.models.address_book import Record
-from modules.bot_assistant.models.exceptions import InvalidArgsError
+import modules.bot_assistant.models.exceptions as exceptions
 
 
 def hello(address_book):
@@ -10,7 +10,7 @@ def hello(address_book):
 @input_error
 def add_contact(args, address_book):
     if len(args) != 2:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name, phone = args
 
     if name not in address_book:
@@ -19,13 +19,13 @@ def add_contact(args, address_book):
         address_book.add_record(record)
         return f"Contact {name} added."
     else:
-        return f"Contact {name} already exists."
+        raise exceptions.ContactAlreadyExistsError
 
 
 @input_error
 def change_contact(args, address_book):
     if len(args) != 2:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name, phone = args
 
     if name in address_book:
@@ -33,13 +33,13 @@ def change_contact(args, address_book):
         record.add_phone(phone)
         return f"Contact {name} changed."
     else:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
 
 @input_error
 def get_contact_phone(args, address_book):
     if len(args) != 1:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name = args[0]
 
     if name in address_book:
@@ -47,36 +47,38 @@ def get_contact_phone(args, address_book):
         phones = [phone.value for phone in record.phones]
         return f"Phone: {', '.join(phones)}"
     else:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
 
+@input_error
 def remove_phone(args, address_book):
     if len(args) != 2:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
 
     name, phone = args
 
     record = address_book.data.get(name)
     if not record:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
     if record.find_phone(phone):
         record.remove_phone(phone)
         return f"Phone {phone} removed from {name}."
     else:
-        return f"Contact {name} does not have phone {phone}."
+        raise exceptions.PhoneDoesNotExistError
 
 
+@input_error
 def delete_contact(args, address_book):
     if len(args) != 1:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name = args[0]
 
     if name in address_book:
         address_book.pop(name)
         return f"Contact {name} deleted."
     else:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
 
 def get_all_contacts(address_book):
@@ -88,7 +90,7 @@ def get_all_contacts(address_book):
 @input_error
 def add_birthday(args, address_book):
     if len(args) != 2:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name, birthday = args
 
     if name in address_book:
@@ -96,26 +98,24 @@ def add_birthday(args, address_book):
         record.add_birthday(birthday)
         return f"Birthday for {name} added."
     else:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
 
 @input_error
 def show_birthday(args, address_book):
     if len(args) != 1:
-        raise InvalidArgsError
+        raise exceptions.InvalidArgsError
     name = args[0]
 
     if name in address_book:
         record = address_book.data[name]
         if record.birthday.value:
             return f"{name}'s birthday: {record.birthday}"
-        else:
-            return f"{name} does not have a birthday saved."
     else:
-        return f"Contact {name} doesn't exist."
+        raise exceptions.ContactDoesNotExistError
 
 
-def get_birthdays_per_week(address_book):
+def show_birthdays_per_week(address_book):
     birthdays = address_book.get_birthdays_per_week()
 
     if not birthdays:

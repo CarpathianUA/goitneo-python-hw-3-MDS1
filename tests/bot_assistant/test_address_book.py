@@ -32,6 +32,18 @@ def test_get_contact_phone():
     print("test: get contact phone: passed! [Module: {}]".format(ab.__name__))
 
 
+def test_remove_contact_phone():
+    book = ab.AddressBook()
+    book.add_record(ab.Record("AlanWake"))
+    book.find("AlanWake").add_phone("1111111111")
+    book.find("AlanWake").add_phone("2222222222")
+
+    book.find("AlanWake").remove_phone("1111111111")
+    assert book.find("AlanWake").find_phone("1111111111") is None
+
+    print("test: remove contact phone: passed! [Module: {}]".format(ab.__name__))
+
+
 def test_delete_contact():
     book = ab.AddressBook()
     book.add_record(ab.Record("AlanWake"))

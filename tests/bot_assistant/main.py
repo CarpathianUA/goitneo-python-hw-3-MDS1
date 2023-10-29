@@ -6,6 +6,7 @@ if __name__ == "__main__":
     test_address_book.test_change_contact()
     test_address_book.test_get_contact_phone()
     test_address_book.test_delete_contact()
+    test_address_book.test_remove_contact_phone()
     test_address_book.test_get_all_contacts()
     test_address_book.test_add_birthday()
     test_address_book.test_get_birthday()

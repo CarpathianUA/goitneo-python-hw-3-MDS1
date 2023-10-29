@@ -1,13 +1,14 @@
 import os
 import pickle
 from collections import UserDict, defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from modules.bot_assistant.constants.file_paths import ADDRESS_BOOK_FILE
 from modules.bot_assistant.constants.weekend_days import WEEKEND_DAYS
 from modules.bot_assistant.models.exceptions import (
     InvalidPhoneError,
     InvalidBirthdayFormatError,
+    ContactDoesNotExistError
 )
 from modules.bot_assistant.utils.birthdays import is_valid_birth_date
 from modules.bot_assistant.utils.phone_numbers import is_valid_phone
@@ -110,6 +111,7 @@ class Record:
         return f"Contact name: {self.name.value}, phones: {phones_str}, birthday: {birthday_str}"
 
 
+# TO-DO: Move birthdays methods to handlers
 class AddressBook(UserDict):
     def __is_key_exist(self, key):
         return key in self.data
@@ -119,12 +121,12 @@ class AddressBook(UserDict):
 
     def find(self, name):
         if not self.__is_key_exist(name):
-            raise ValueError(f"Contact '{name}' doesn't exist.")
+            raise ContactDoesNotExistError
         return self.data[name]
 
     def delete(self, name):
         if not self.__is_key_exist(name):
-            raise ValueError(f"Contact '{name}' doesn't exist.")
+            raise ContactDoesNotExistError
         self.data.pop(name, None)
         return f"Contact '{name}' has been deleted."
 
@@ -140,14 +142,37 @@ class AddressBook(UserDict):
     def process_record_for_birthday(self, record, today, birthdays):
         name = record.name.value
         birthday_date = self.get_upcoming_birthday(record, today)
-        if birthday_date is None:
+        if birthday_date is None or birthday_date < today:
             return
 
-        delta_days = (birthday_date - today).days
-
-        if delta_days < 7:
-            day_to_say_happy_birthday = self.get_birthday_wish_day(today, birthday_date)
+        day_to_say_happy_birthday = self.calculate_birthday_wish_day(birthday_date, today)
+        if day_to_say_happy_birthday:
             birthdays[day_to_say_happy_birthday].append(name)
+
+    def calculate_birthday_wish_day(self, birthday_date, today):
+        if birthday_date < today:
+            return None  # Skip birthdays that have already occurred
+        if birthday_date.weekday() in WEEKEND_DAYS:
+            return self.handle_weekend_birthday(birthday_date, today)
+        else:
+            return self.handle_weekday_birthday(birthday_date, today)
+
+    @staticmethod
+    def handle_weekend_birthday(birthday_date, today):
+        next_monday = today + timedelta((7 - today.weekday()) % 7)  # Calculate next Monday
+        if birthday_date < next_monday:
+            return "Monday"
+        return None
+
+    @staticmethod
+    def handle_weekday_birthday(birthday_date, today):
+        delta_days = (birthday_date - today).days
+        if delta_days < 7:
+            if birthday_date.weekday() == today.weekday():
+                return "Today"
+            else:
+                return birthday_date.strftime("%A")
+        return None
 
     @staticmethod
     def get_upcoming_birthday(record, today):
@@ -155,23 +180,27 @@ class AddressBook(UserDict):
             return None
 
         birthday_str = record.birthday.value
+        birthday_date = datetime.strptime(birthday_str, "%d.%m.%Y").date()
 
-        birthday_date = datetime.strptime(
-            birthday_str, "%d.%m.%Y"
-        ).date()  # Convert to date here
+        # If birthday has already occurred this year, add one year
+        if today > birthday_date.replace(year=today.year):
+            birthday_date = birthday_date.replace(year=today.year + 1)
+        else:
+            birthday_date = birthday_date.replace(year=today.year)
 
-        birthday_this_year = birthday_date.replace(year=today.year)
-        if birthday_this_year < today:
-            birthday_this_year = birthday_date.replace(year=today.year + 1)
-
-        return birthday_this_year
+        return birthday_date
 
     @staticmethod
     def get_birthday_wish_day(today, birthday_date):
+        if today.weekday() in WEEKEND_DAYS:
+            if birthday_date.weekday() in WEEKEND_DAYS or today == birthday_date:
+                return "Monday (next week)"
+            else:
+                return None  # Skip showing this birthday
         if birthday_date.weekday() in WEEKEND_DAYS:
             return "Monday"
-        elif birthday_date.weekday() == today.weekday():
-            return "Today"
+        elif birthday_date == today:
+            return "Monday"
         else:
             return birthday_date.strftime("%A")
 

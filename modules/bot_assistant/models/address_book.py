@@ -154,17 +154,11 @@ class AddressBook(UserDict):
         if not record.birthday or not record.birthday.value:
             return None
 
-        # Assuming birthday date is stored as a string in 'DD.MM.YYYY' format
         birthday_str = record.birthday.value
 
-        # Convert the birthday string to a datetime object
-        # Adjust the format if necessary
         birthday_date = datetime.strptime(
             birthday_str, "%d.%m.%Y"
         ).date()  # Convert to date here
-
-        # Set the time to midnight (not necessary since it's already a date object)
-        # birthday_date = birthday_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
         birthday_this_year = birthday_date.replace(year=today.year)
         if birthday_this_year < today:
@@ -174,8 +168,6 @@ class AddressBook(UserDict):
 
     @staticmethod
     def get_birthday_wish_day(today, birthday_date):
-        print("today", today.weekday())
-        print("birthday", birthday_date.weekday())
         if birthday_date.weekday() in WEEKEND_DAYS:
             return "Monday"
         elif birthday_date.weekday() == today.weekday():

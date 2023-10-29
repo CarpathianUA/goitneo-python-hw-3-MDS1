@@ -6,6 +6,7 @@ Python package to demonstrate simple bot assistant.
 
 * basic functionality with common errors handling
 * simple tests with assertions
+* state file (serialized with pickle) is stored locally
 
 ---
 
@@ -14,7 +15,7 @@ Python package to demonstrate simple bot assistant.
 From the root directory of the project, run the following command:
 
 ```bash
-pip install -e .
+pip install .
 ```
 
 ---
@@ -26,6 +27,8 @@ pip install -e .
 ```bash
 bot-assistant
 ```
+
+To get a list of available commands, run `bot-assistant` and type `help`.
 
 ---
 

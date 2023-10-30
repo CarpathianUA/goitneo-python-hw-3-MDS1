@@ -143,7 +143,7 @@ class AddressBook(UserDict):
         name = record.name.value
         birthday_date = self.get_upcoming_birthday(record, today)
         if birthday_date is None or birthday_date < today:
-            return
+            return None
 
         day_to_say_happy_birthday = self.calculate_birthday_wish_day(birthday_date, today)
         if day_to_say_happy_birthday:

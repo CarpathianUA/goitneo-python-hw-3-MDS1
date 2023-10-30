@@ -5,7 +5,7 @@ setup(
     version='0.1.0',
     description='cli bot assistant',
     packages=find_packages(),
-    author="Roman Slipchenko",
+    author="Data Fusion Team",
     author_email="romanslipchenko@gmail.com",
     license='MIT',
     entry_points={'console_scripts': [
